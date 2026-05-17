@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Geometry Run</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="hud">
+      <div>
+        <p class="eyebrow">Geometry Run</p>
+        <h1 id="levelTitle">Level 1</h1>
+      </div>
+      <div class="stats">
+        <span id="progressLabel">0%</span>
+        <button id="restartBtn" type="button">Restart</button>
+      </div>
+    </section>
+
+    <section class="game-wrap">
+      <canvas id="game" width="960" height="420" aria-label="Geometry Run game"></canvas>
+      <div id="message" class="message"></div>
+    </section>
+
+    <section class="controls">
+      <button id="jumpBtn" type="button">Jump</button>
+      <p>Space = jump · hold Space to keep jumping on landing</p>
+    </section>
+
+    <section class="avatar-panel">
+      <div>
+        <p class="eyebrow">Jumper avatars</p>
+        <h2>Pick your shape</h2>
+      </div>
+      <div id="avatarList" class="avatar-list"></div>
+    </section>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
