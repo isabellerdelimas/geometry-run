@@ -10,8 +10,14 @@ const avatarList = document.querySelector('#avatarList');
 const floorY = 350;
 const playerX = 180;
 const gravity = 0.78;
-const jumpVelocity = -14.5;
-const speed = 5.2;
+const jumpVelocity = -11.8;
+const padJumpVelocity = -17.2;
+const jumpHoldBoost = 0.54;
+const maxJumpHoldMs = 220;
+const jumpReleaseCut = 0.7;
+const startingSpeed = 6.35;
+const maxSpeed = 9.1;
+const countdownSeconds = 3;
 
 const avatars = [
   { icon: '■', color: '#7c5cff', name: 'Square' },
@@ -24,21 +30,28 @@ const avatars = [
 const levels = [
   {
     name: 'Level 1 · Learn the rhythm',
-    length: 2350,
+    length: 3400,
     platforms: [
       { x: 0, width: 520, y: floorY },
       { x: 620, width: 180, y: 305 },
       { x: 900, width: 190, y: 270 },
       { x: 1190, width: 180, y: 315 },
       { x: 1480, width: 220, y: 285 },
-      { x: 1820, width: 530, y: floorY },
+      { x: 1820, width: 180, y: 245 },
+      { x: 2110, width: 170, y: 300 },
+      { x: 2390, width: 160, y: 255 },
+      { x: 2660, width: 180, y: 305 },
+      { x: 2950, width: 450, y: floorY },
     ],
-    spikes: [{ x: 1970, width: 80 }],
+    spikes: [
+      { x: 3050, width: 70 },
+      { x: 3230, width: 70 },
+    ],
     pads: [],
   },
   {
     name: 'Level 2 · The helper button',
-    length: 2600,
+    length: 3850,
     platforms: [
       { x: 0, width: 450, y: floorY },
       { x: 560, width: 170, y: 300 },
@@ -47,14 +60,22 @@ const levels = [
       { x: 1390, width: 170, y: 275 },
       { x: 1650, width: 170, y: 235 },
       { x: 1910, width: 170, y: 290 },
-      { x: 2180, width: 420, y: floorY },
+      { x: 2180, width: 170, y: 250 },
+      { x: 2450, width: 150, y: 305 },
+      { x: 2710, width: 150, y: 245 },
+      { x: 2970, width: 170, y: 295 },
+      { x: 3250, width: 600, y: floorY },
     ],
-    spikes: [{ x: 2300, width: 90 }],
-    pads: [{ x: 390 }, { x: 760 }, { x: 1330 }, { x: 1850 }],
+    spikes: [
+      { x: 3350, width: 70 },
+      { x: 3530, width: 90 },
+      { x: 3740, width: 70 },
+    ],
+    pads: [{ x: 390 }, { x: 760 }, { x: 1330 }, { x: 1850 }, { x: 2390 }, { x: 2910 }],
   },
   {
     name: 'Level 3 · Spike garden',
-    length: 2850,
+    length: 4300,
     platforms: [
       { x: 0, width: 440, y: floorY },
       { x: 540, width: 180, y: 300 },
@@ -63,18 +84,24 @@ const levels = [
       { x: 1350, width: 150, y: 250 },
       { x: 1610, width: 180, y: 305 },
       { x: 1910, width: 170, y: 270 },
-      { x: 2190, width: 660, y: floorY },
+      { x: 2190, width: 150, y: 245 },
+      { x: 2460, width: 150, y: 300 },
+      { x: 2720, width: 150, y: 235 },
+      { x: 2990, width: 170, y: 300 },
+      { x: 3270, width: 170, y: 255 },
+      { x: 3560, width: 740, y: floorY },
     ],
     spikes: [
-      { x: 2250, width: 70 },
-      { x: 2400, width: 70 },
-      { x: 2550, width: 70 },
+      { x: 3650, width: 70 },
+      { x: 3830, width: 70 },
+      { x: 4010, width: 70 },
+      { x: 4190, width: 70 },
     ],
-    pads: [{ x: 485 }, { x: 1030 }, { x: 1550 }],
+    pads: [{ x: 485 }, { x: 1030 }, { x: 1550 }, { x: 2140 }, { x: 2670 }, { x: 3500 }],
   },
   {
     name: 'Level 4 · Final run',
-    length: 3200,
+    length: 4850,
     platforms: [
       { x: 0, width: 400, y: floorY },
       { x: 500, width: 160, y: 305 },
@@ -84,16 +111,21 @@ const levels = [
       { x: 1510, width: 170, y: 290 },
       { x: 1800, width: 140, y: 245 },
       { x: 2050, width: 160, y: 300 },
-      { x: 2330, width: 870, y: floorY },
+      { x: 2330, width: 140, y: 235 },
+      { x: 2580, width: 140, y: 295 },
+      { x: 2830, width: 140, y: 230 },
+      { x: 3090, width: 150, y: 285 },
+      { x: 3360, width: 150, y: 235 },
+      { x: 3640, width: 160, y: 300 },
+      { x: 3940, width: 910, y: floorY },
     ],
     spikes: [
-      { x: 2390, width: 70 },
-      { x: 2520, width: 70 },
-      { x: 2650, width: 70 },
-      { x: 2780, width: 70 },
-      { x: 2910, width: 70 },
+      { x: 4030, width: 70 },
+      { x: 4200, width: 70 },
+      { x: 4370, width: 70 },
+      { x: 4540, width: 70 },
     ],
-    pads: [{ x: 440 }, { x: 950 }, { x: 1450 }, { x: 1990 }],
+    pads: [{ x: 440 }, { x: 950 }, { x: 1450 }, { x: 1990 }, { x: 2520 }, { x: 3300 }, { x: 3870 }],
   },
 ];
 
@@ -101,6 +133,9 @@ let state;
 let holdingJump = false;
 let selectedAvatar = 0;
 let unlockedAvatars = 1;
+let audioContext;
+let musicTimer;
+let beat = 0;
 
 function resetGame(levelIndex = state?.levelIndex ?? 0) {
   const level = levels[levelIndex];
@@ -108,47 +143,87 @@ function resetGame(levelIndex = state?.levelIndex ?? 0) {
     levelIndex,
     level,
     cameraX: 0,
-    player: { y: floorY - 38, vy: 0, size: 38, grounded: true },
+    player: { y: floorY - 38, vy: 0, size: 38, grounded: true, jumpStartedAt: null },
     dead: false,
     won: false,
+    ready: false,
+    countdown: countdownSeconds,
+    countdownStartedAt: performance.now(),
     lastPad: null,
   };
   levelTitle.textContent = level.name;
-  message.classList.remove('show');
+  showMessage(String(countdownSeconds));
 }
 
 function currentWorldX() {
   return state.cameraX + playerX;
 }
 
+function currentSpeed() {
+  const progress = Math.min(1, currentWorldX() / state.level.length);
+  return startingSpeed + (maxSpeed - startingSpeed) * progress;
+}
+
 function tryJump() {
-  if (state.dead || state.won) return;
+  startMusic();
+  if (state.dead || state.won || !state.ready) return;
   if (state.player.grounded) {
     state.player.vy = jumpVelocity;
     state.player.grounded = false;
+    state.player.jumpStartedAt = performance.now();
   }
 }
 
-function getStandingPlatform() {
-  const worldX = currentWorldX();
-  return state.level.platforms.find((platform) =>
-    worldX + state.player.size * 0.4 >= platform.x &&
-    worldX - state.player.size * 0.4 <= platform.x + platform.width
-  );
+function stopHoldingJump() {
+  holdingJump = false;
+  if (!state?.player.grounded && state?.player.vy < -4) {
+    state.player.vy *= jumpReleaseCut;
+  }
 }
 
 function update() {
   if (state.dead || state.won) return;
 
-  state.cameraX += speed;
+  if (!state.ready) {
+    const elapsed = (performance.now() - state.countdownStartedAt) / 1000;
+    const remaining = Math.max(0, Math.ceil(countdownSeconds - elapsed));
+    if (remaining !== state.countdown) {
+      state.countdown = remaining;
+      if (remaining > 0) showMessage(String(remaining));
+      else showMessage('GO!');
+    }
+    if (elapsed < countdownSeconds + 0.45) return;
+    state.ready = true;
+    message.classList.remove('show');
+  }
+
+  state.cameraX += currentSpeed();
   const player = state.player;
+  const previousY = player.y;
+  const previousBottom = previousY + player.size;
+  const jumpHoldTime = player.jumpStartedAt ? performance.now() - player.jumpStartedAt : Infinity;
+  if (holdingJump && !player.grounded && player.vy < 0 && jumpHoldTime < maxJumpHoldMs) {
+    player.vy -= jumpHoldBoost;
+  }
   player.vy += gravity;
   player.y += player.vy;
 
-  const platform = getStandingPlatform();
-  if (platform && player.vy >= 0 && player.y + player.size >= platform.y && player.y + player.size <= platform.y + 28) {
+  const worldX = currentWorldX();
+  const playerLeft = worldX - player.size * 0.5;
+  const playerRight = worldX + player.size * 0.5;
+  const playerBottom = player.y + player.size;
+  const platform = state.level.platforms.find((item) =>
+    playerRight > item.x &&
+    playerLeft < item.x + item.width &&
+    player.vy >= 0 &&
+    previousBottom <= item.y &&
+    playerBottom >= item.y
+  );
+
+  if (platform) {
     player.y = platform.y - player.size;
     player.vy = 0;
+    player.jumpStartedAt = null;
     if (!player.grounded && holdingJump) {
       player.grounded = true;
       tryJump();
@@ -159,13 +234,22 @@ function update() {
     player.grounded = false;
   }
 
-  const worldX = currentWorldX();
   const pad = state.level.pads.find((item) => Math.abs(worldX - item.x) < 18);
   if (pad && state.lastPad !== pad && player.grounded) {
     state.lastPad = pad;
-    player.vy = jumpVelocity;
+    player.vy = padJumpVelocity;
     player.grounded = false;
+    player.jumpStartedAt = performance.now();
   }
+
+  const playerTop = player.y;
+  const columnHit = state.level.platforms.some((item) =>
+    playerRight > item.x &&
+    playerLeft < item.x + item.width &&
+    playerBottom > item.y &&
+    playerTop < canvas.height &&
+    item !== platform
+  );
 
   const spikeHit = state.level.spikes.some((spike) =>
     worldX + player.size * 0.3 > spike.x &&
@@ -173,7 +257,7 @@ function update() {
     player.y + player.size > floorY - 26
   );
 
-  if (spikeHit || player.y > canvas.height + 80) {
+  if (columnHit || spikeHit || player.y > canvas.height + 80) {
     state.dead = true;
     showMessage('Ouch — restart and catch the rhythm again.');
   }
@@ -202,6 +286,7 @@ function draw() {
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  drawPulseBackdrop();
   drawGrid();
 
   state.level.platforms.forEach(drawPlatform);
@@ -209,6 +294,22 @@ function draw() {
   state.level.pads.forEach(drawPad);
   drawFinishLine();
   drawPlayer();
+}
+
+function drawPulseBackdrop() {
+  const pulse = 0.5 + Math.sin(beat * 0.6) * 0.5;
+  ctx.fillStyle = `rgba(124, 92, 255, ${0.08 + pulse * 0.08})`;
+  for (let i = 0; i < 6; i++) {
+    const x = ((i * 220) - (state.cameraX * 0.35 % 220)) + 40;
+    const size = 42 + ((i + beat) % 3) * 10;
+    ctx.beginPath();
+    ctx.moveTo(x, 90);
+    ctx.lineTo(x + size, 130);
+    ctx.lineTo(x, 170);
+    ctx.lineTo(x - size, 130);
+    ctx.closePath();
+    ctx.fill();
+  }
 }
 
 function drawGrid() {
@@ -299,6 +400,41 @@ function drawPlayer() {
   ctx.restore();
 }
 
+function startMusic() {
+  if (audioContext) return;
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const notes = [261.63, 329.63, 392.0, 523.25, 392.0, 329.63, 440.0, 493.88];
+  let step = 0;
+  musicTimer = window.setInterval(() => {
+    if (!audioContext) return;
+    const now = audioContext.currentTime;
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.type = step % 4 === 0 ? 'sawtooth' : 'triangle';
+    osc.frequency.value = notes[step % notes.length];
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.055, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+    osc.connect(gain).connect(audioContext.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+    if (step % 2 === 0) {
+      const bass = audioContext.createOscillator();
+      const bassGain = audioContext.createGain();
+      bass.type = 'square';
+      bass.frequency.value = notes[step % notes.length] / 2;
+      bassGain.gain.setValueAtTime(0.0001, now);
+      bassGain.gain.exponentialRampToValueAtTime(0.028, now + 0.01);
+      bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+      bass.connect(bassGain).connect(audioContext.destination);
+      bass.start(now);
+      bass.stop(now + 0.18);
+    }
+    step += 1;
+    beat += 1;
+  }, 220);
+}
+
 function showMessage(text) {
   message.textContent = text;
   message.classList.add('show');
@@ -342,15 +478,15 @@ window.addEventListener('keydown', (event) => {
 });
 
 window.addEventListener('keyup', (event) => {
-  if (event.code === 'Space') holdingJump = false;
+  if (event.code === 'Space') stopHoldingJump();
 });
 
 jumpBtn.addEventListener('pointerdown', () => {
   holdingJump = true;
   nextAction();
 });
-jumpBtn.addEventListener('pointerup', () => holdingJump = false);
-jumpBtn.addEventListener('pointerleave', () => holdingJump = false);
+jumpBtn.addEventListener('pointerup', stopHoldingJump);
+jumpBtn.addEventListener('pointerleave', stopHoldingJump);
 restartBtn.addEventListener('click', () => resetGame(state.levelIndex));
 
 function loop() {
