@@ -273,7 +273,7 @@ function update() {
   }
 
   const pad = state.level.pads.find((item) => Math.abs(worldX - item.x) < 18);
-  if (pad && state.lastPad !== pad && player.grounded) {
+  if (pad && state.lastPad !== pad) {
     state.lastPad = pad;
     player.vy = padJumpVelocity;
     player.grounded = false;
