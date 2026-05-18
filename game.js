@@ -16,8 +16,8 @@ const padJumpVelocity = -17.2;
 const jumpHoldBoost = 0.54;
 const maxJumpHoldMs = 220;
 const jumpReleaseCut = 0.7;
-const startingSpeed = 6.35;
-const maxSpeed = 9.1;
+const startingSpeed = 5.7;
+const maxSpeed = 8.2;
 const countdownSeconds = 3;
 const buttonJumpVelocities = {
   short: -10.4,
