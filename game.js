@@ -4,7 +4,8 @@ const levelTitle = document.querySelector('#levelTitle');
 const progressLabel = document.querySelector('#progressLabel');
 const message = document.querySelector('#message');
 const restartBtn = document.querySelector('#restartBtn');
-const jumpBtn = document.querySelector('#jumpBtn');
+const jumpButtons = document.querySelectorAll('.jump-btn');
+const musicList = document.querySelector('#musicList');
 const avatarList = document.querySelector('#avatarList');
 
 const floorY = 350;
@@ -18,6 +19,11 @@ const jumpReleaseCut = 0.7;
 const startingSpeed = 6.35;
 const maxSpeed = 9.1;
 const countdownSeconds = 3;
+const buttonJumpVelocities = {
+  short: -10.4,
+  medium: -13.6,
+  high: -16.2,
+};
 
 const avatars = [
   { icon: '■', color: '#7c5cff', name: 'Square' },
@@ -25,6 +31,30 @@ const avatars = [
   { icon: '●', color: '#58e39b', name: 'Orb' },
   { icon: '▲', color: '#ffd166', name: 'Triangle' },
   { icon: '⬟', color: '#ff7ab6', name: 'Hex' },
+];
+
+const musicTracks = [
+  {
+    name: 'Neon Run',
+    interval: 220,
+    notes: [261.63, 329.63, 392.0, 523.25, 392.0, 329.63, 440.0, 493.88],
+    leadTypes: ['sawtooth', 'triangle', 'triangle', 'triangle'],
+    bassType: 'square',
+  },
+  {
+    name: 'Cloud Hop',
+    interval: 280,
+    notes: [293.66, 349.23, 440.0, 523.25, 440.0, 392.0, 349.23, 329.63],
+    leadTypes: ['sine', 'triangle', 'sine', 'triangle'],
+    bassType: 'sine',
+  },
+  {
+    name: 'Laser Sprint',
+    interval: 170,
+    notes: [329.63, 392.0, 493.88, 659.25, 587.33, 493.88, 440.0, 392.0],
+    leadTypes: ['square', 'sawtooth', 'square', 'triangle'],
+    bassType: 'sawtooth',
+  },
 ];
 
 const levels = [
@@ -136,6 +166,7 @@ let unlockedAvatars = 1;
 let audioContext;
 let musicTimer;
 let beat = 0;
+let selectedTrack = 0;
 
 function resetGame(levelIndex = state?.levelIndex ?? 0) {
   const level = levels[levelIndex];
@@ -164,14 +195,19 @@ function currentSpeed() {
   return startingSpeed + (maxSpeed - startingSpeed) * progress;
 }
 
-function tryJump() {
+function tryJump(velocity = jumpVelocity) {
   startMusic();
   if (state.dead || state.won || !state.ready) return;
   if (state.player.grounded) {
-    state.player.vy = jumpVelocity;
+    state.player.vy = velocity;
     state.player.grounded = false;
     state.player.jumpStartedAt = performance.now();
   }
+}
+
+function performButtonJump(type) {
+  holdingJump = false;
+  nextAction(buttonJumpVelocities[type]);
 }
 
 function stopHoldingJump() {
@@ -401,17 +437,23 @@ function drawPlayer() {
 }
 
 function startMusic() {
-  if (audioContext) return;
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  const notes = [261.63, 329.63, 392.0, 523.25, 392.0, 329.63, 440.0, 493.88];
+  if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  if (musicTimer) return;
+  beginTrack();
+}
+
+function beginTrack() {
+  if (!audioContext) return;
+  if (musicTimer) window.clearInterval(musicTimer);
+  const track = musicTracks[selectedTrack];
   let step = 0;
   musicTimer = window.setInterval(() => {
     if (!audioContext) return;
     const now = audioContext.currentTime;
     const osc = audioContext.createOscillator();
     const gain = audioContext.createGain();
-    osc.type = step % 4 === 0 ? 'sawtooth' : 'triangle';
-    osc.frequency.value = notes[step % notes.length];
+    osc.type = track.leadTypes[step % track.leadTypes.length];
+    osc.frequency.value = track.notes[step % track.notes.length];
     gain.gain.setValueAtTime(0.0001, now);
     gain.gain.exponentialRampToValueAtTime(0.055, now + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
@@ -421,8 +463,8 @@ function startMusic() {
     if (step % 2 === 0) {
       const bass = audioContext.createOscillator();
       const bassGain = audioContext.createGain();
-      bass.type = 'square';
-      bass.frequency.value = notes[step % notes.length] / 2;
+      bass.type = track.bassType;
+      bass.frequency.value = track.notes[step % track.notes.length] / 2;
       bassGain.gain.setValueAtTime(0.0001, now);
       bassGain.gain.exponentialRampToValueAtTime(0.028, now + 0.01);
       bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
@@ -432,7 +474,7 @@ function startMusic() {
     }
     step += 1;
     beat += 1;
-  }, 220);
+  }, track.interval);
 }
 
 function showMessage(text) {
@@ -456,7 +498,24 @@ function renderAvatars() {
   });
 }
 
-function nextAction() {
+function renderMusicTracks() {
+  musicList.innerHTML = '';
+  musicTracks.forEach((track, index) => {
+    const button = document.createElement('button');
+    button.className = `music-btn ${index === selectedTrack ? 'selected' : ''}`;
+    button.textContent = track.name;
+    button.type = 'button';
+    button.addEventListener('click', () => {
+      selectedTrack = index;
+      renderMusicTracks();
+      if (audioContext) beginTrack();
+      else startMusic();
+    });
+    musicList.appendChild(button);
+  });
+}
+
+function nextAction(velocity = jumpVelocity) {
   if (state.dead) {
     resetGame(state.levelIndex);
     return;
@@ -466,7 +525,7 @@ function nextAction() {
     else resetGame(0);
     return;
   }
-  tryJump();
+  tryJump(velocity);
 }
 
 window.addEventListener('keydown', (event) => {
@@ -481,12 +540,9 @@ window.addEventListener('keyup', (event) => {
   if (event.code === 'Space') stopHoldingJump();
 });
 
-jumpBtn.addEventListener('pointerdown', () => {
-  holdingJump = true;
-  nextAction();
+jumpButtons.forEach((button) => {
+  button.addEventListener('click', () => performButtonJump(button.dataset.jump));
 });
-jumpBtn.addEventListener('pointerup', stopHoldingJump);
-jumpBtn.addEventListener('pointerleave', stopHoldingJump);
 restartBtn.addEventListener('click', () => resetGame(state.levelIndex));
 
 function loop() {
@@ -497,4 +553,5 @@ function loop() {
 
 resetGame(0);
 renderAvatars();
+renderMusicTracks();
 loop();

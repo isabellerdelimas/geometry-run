@@ -25,8 +25,20 @@
     </section>
 
     <section class="controls">
-      <button id="jumpBtn" type="button">Jump</button>
-      <p>Tap Space for a short jump · hold a little longer for medium/high jumps</p>
+      <div class="jump-controls" aria-label="Jump controls">
+        <button class="jump-btn" data-jump="short" type="button">Short</button>
+        <button class="jump-btn" data-jump="medium" type="button">Medium</button>
+        <button class="jump-btn" data-jump="high" type="button">High</button>
+      </div>
+      <p>Space still adapts to your hold · the buttons give you exact jump heights</p>
+    </section>
+
+    <section class="music-panel">
+      <div>
+        <p class="eyebrow">Music</p>
+        <h2>Pick the pulse</h2>
+      </div>
+      <div id="musicList" class="music-list"></div>
     </section>
 
     <section class="avatar-panel">
