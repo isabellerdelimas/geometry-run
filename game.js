@@ -181,6 +181,7 @@ function resetGame(levelIndex = state?.levelIndex ?? 0) {
     countdown: countdownSeconds,
     countdownStartedAt: performance.now(),
     lastPad: null,
+    particles: [],
   };
   levelTitle.textContent = level.name;
   showMessage(String(countdownSeconds));
@@ -218,6 +219,7 @@ function stopHoldingJump() {
 }
 
 function update() {
+  updateParticles();
   if (state.dead || state.won) return;
 
   if (!state.ready) {
@@ -295,6 +297,7 @@ function update() {
 
   if (columnHit || spikeHit || player.y > canvas.height + 80) {
     state.dead = true;
+    createExplosion();
     showMessage('Ouch — restart and catch the rhythm again.');
   }
 
@@ -329,7 +332,50 @@ function draw() {
   state.level.spikes.forEach(drawSpikes);
   state.level.pads.forEach(drawPad);
   drawFinishLine();
-  drawPlayer();
+  if (!state.dead) drawPlayer();
+  drawParticles();
+}
+
+function createExplosion() {
+  const avatar = avatars[selectedAvatar];
+  const originX = playerX + state.player.size / 2;
+  const originY = state.player.y + state.player.size / 2;
+  state.particles = Array.from({ length: 24 }, (_, index) => {
+    const angle = (Math.PI * 2 * index) / 24 + Math.random() * 0.35;
+    const speed = 2.2 + Math.random() * 4.4;
+    return {
+      x: originX,
+      y: originY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 1.3,
+      size: 4 + Math.random() * 7,
+      life: 34 + Math.random() * 18,
+      color: index % 4 === 0 ? '#f7f7fb' : avatar.color,
+    };
+  });
+}
+
+function updateParticles() {
+  if (!state?.particles?.length) return;
+  state.particles = state.particles
+    .map((particle) => ({
+      ...particle,
+      x: particle.x + particle.vx,
+      y: particle.y + particle.vy,
+      vy: particle.vy + 0.18,
+      life: particle.life - 1,
+    }))
+    .filter((particle) => particle.life > 0);
+}
+
+function drawParticles() {
+  if (!state.particles.length) return;
+  state.particles.forEach((particle) => {
+    ctx.globalAlpha = Math.min(1, particle.life / 18);
+    ctx.fillStyle = particle.color;
+    ctx.fillRect(particle.x, particle.y, particle.size, particle.size);
+  });
+  ctx.globalAlpha = 1;
 }
 
 function drawPulseBackdrop() {
